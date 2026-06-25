@@ -1,68 +1,55 @@
-﻿using System;
-using System.Drawing;
-using System.IO;
-using UMapx.Visualization;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using Emgu.CV.CvEnum;
+﻿using SkiaSharp;
 
-namespace FaceONNX
+namespace FaceONNX;
+
+internal static class Program
 {
-    class Program
+    static void Main()
     {
-        static void Main()
+        Console.WriteLine("FaceONNX: Face detection");
+
+        using var faceDetector = new FaceDetector(0.95f, 0.5f);
+
+        Directory.CreateDirectory("results");
+
+        foreach (var imagePath in Directory.GetFiles("images", "*.jpg"))
         {
-            Console.WriteLine("FaceONNX: Face detection");
-           
-            using var faceDetector = new FaceDetector(0.95f, 0.5f);
-            using var painter = new Painter()
+            var fileName = Path.GetFileName(imagePath);
+
+            using var bitmap = SKBitmap.Decode(imagePath);
+            if (bitmap is null)
             {
-                BoxPen = new Pen(Color.Yellow, 4),
-                Transparency = 0,
+                Console.WriteLine($"Failed to load: {fileName}");
+                continue;
+            }
+
+            var faces = faceDetector.Forward(bitmap);
+
+            using var surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
+            var canvas = surface.Canvas;
+            canvas.DrawBitmap(bitmap, 0, 0, SKSamplingOptions.Default);
+
+            using var boxPaint = new SKPaint
+            {
+                Style       = SKPaintStyle.Stroke,
+                Color       = SKColors.Yellow,
+                StrokeWidth = 4,
+                IsAntialias = true,
             };
 
-            using var capture = new VideoCapture();
-
-            string windowName = "Face Detection";
-            CvInvoke.NamedWindow(windowName, WindowFlags.AutoSize);
-
-            while (true) 
+            foreach (var rect in faces)
             {
-                using var frame = capture.QueryFrame();
-                if (frame != null)
-                {
-                    
-                    Image<Bgr, byte> img = frame.ToImage<Bgr, byte>();
-                    Bitmap bitmap = img.ToBitmap();
-
-                    var output = faceDetector.Forward(bitmap);
-
-                    foreach (var rectangle in output)
-                    {
-                        var paintData = new PaintData()
-                        {
-                            Rectangle = rectangle,
-                            Title = string.Empty
-                        };
-                        using var graphics = Graphics.FromImage(bitmap);
-                        painter.Draw(graphics, paintData);
-                    }
-
-                    // Convert the modified Bitmap back to Image<Bgr, byte>
-                    Image<Bgr, byte> processedImg = bitmap.ToImage<Bgr, byte>();
-
-                    // Display the image in the window.
-                    CvInvoke.Imshow(windowName, processedImg);
-                    if (CvInvoke.WaitKey(1) == 27) // Break loop on 'ESC' key press
-                        break;
-
-                    //bitmap.Save("WebcamFrame.png"); // Simpan frame sebagai gambar. Anda mungkin ingin mengubah ini.
-                    Console.WriteLine($"Image: [Webcam frame] --> detected [{output.Length}] faces ");
-                    //Console.WriteLine($"Image: [Webcam frame] --> detected [{output.Length}] faces with last confidence {faceDetector.LastConfidence}");
-                }
+                canvas.DrawRect(new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom), boxPaint);
             }
-            CvInvoke.DestroyWindow(windowName);
+
+            var outputPath = Path.Combine("results", fileName);
+            using var image = surface.Snapshot();
+            using var data  = image.Encode(SKEncodedImageFormat.Jpeg, 95);
+            using var stream = File.OpenWrite(outputPath);
+            data.SaveTo(stream);
+
+            Console.WriteLine($"Image: [{fileName}] --> detected [{faces.Length}] faces");
         }
     }
 }
-    
+

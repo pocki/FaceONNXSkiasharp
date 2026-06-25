@@ -1,39 +1,37 @@
-﻿using System;
-using System.Drawing;
+﻿using SkiaSharp;
 
-namespace FaceONNX
+namespace FaceONNX;
+
+/// <summary>
+/// Defines face detector interface.
+/// </summary>
+public interface IFaceDetector : IDisposable
 {
+    #region Interface
+
     /// <summary>
-    /// Defines face detector interface.
+    /// Gets or sets confidence threshold.
     /// </summary>
-    public interface IFaceDetector : IDisposable
-    {
-        #region Interface
+    float ConfidenceThreshold { get; set; }
 
-        /// <summary>
-        /// Gets or sets confidence threshold.
-        /// </summary>
-        float ConfidenceThreshold { get; set; }
+    /// <summary>
+    /// Gets or sets NonMaxSuppression threshold.
+    /// </summary>
+    float NmsThreshold { get; set; }
 
-        /// <summary>
-        /// Gets or sets NonMaxSuppression threshold.
-        /// </summary>
-        float NmsThreshold { get; set; }
+    /// <summary>
+    /// Returns face detection results.
+    /// </summary>
+    /// <param name="image">Bitmap</param>
+    /// <returns>Rectangles</returns>
+    SKRectI[] Forward(SKBitmap image);
 
-        /// <summary>
-        /// Returns face detection results.
-        /// </summary>
-        /// <param name="image">Bitmap</param>
-        /// <returns>Rectangles</returns>
-        Rectangle[] Forward(Bitmap image);
+    /// <summary>
+    /// Returns face detection results.
+    /// </summary>
+    /// <param name="image">Image in RGB terms as float channel arrays [channel][height, width]</param>
+    /// <returns>Rectangles</returns>
+    SKRectI[] Forward(float[][,] image);
 
-        /// <summary>
-        /// Returns face detection results.
-        /// </summary>
-        /// <param name="image">Image in BGR terms</param>
-        /// <returns>Rectangles</returns>
-        Rectangle[] Forward(float[][,] image);
-
-        #endregion
-    }
+    #endregion
 }
