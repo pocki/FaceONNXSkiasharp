@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="FaceONNX.Samples/FaceONNX.Samples.csproj" />
+  <Project Path="FaceONNX/FaceONNX.csproj" />
+</Solution>
