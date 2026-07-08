@@ -5,6 +5,14 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>FaceONNX</PackageId>
+    <Authors>pocki</Authors>
+    <Description>Face detection library using ONNX Runtime and SkiaSharp.</Description>
+    <PackageTags>face-detection;onnx;skia</PackageTags>
+    <RepositoryUrl>https://github.com/pocki/FaceONNXSkiasharp</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,12 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Models\face_detector_640.onnx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Models\yolov5s-face.onnx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Update="Models\**\*.onnx"
+          CopyToOutputDirectory="PreserveNewest"
+          Pack="true"
+          PackagePath="contentFiles\any\any\"
+          PackageCopyToOutput="true" />
   </ItemGroup>
 
 </Project>

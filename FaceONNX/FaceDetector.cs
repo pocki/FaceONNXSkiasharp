@@ -15,9 +15,14 @@ public enum FaceDetectorModel
     FaceOnnx,
 
     /// <summary>
-    /// YOLO single-output model (<c>yolov5s-face.onnx</c>).
+    /// YOLOv5 single-output model (<c>yolov5s-face.onnx</c>).
     /// </summary>
-    Yolo
+    Yolov5,
+
+    /// <summary>
+    /// YOLO26 single-output model (<c>yolo26_face_fp16.onnx</c>).
+    /// </summary>
+    Yolo26
 }
 
 /// <summary>
@@ -40,7 +45,7 @@ public class FaceDetector : IFaceDetector
     /// <param name="confidenceThreshold">Confidence threshold</param>
     /// <param name="nmsThreshold">NonMaxSuppression threshold</param>
     /// <param name="model">Model variant to use</param>
-    public FaceDetector(float confidenceThreshold = 0.4f, float nmsThreshold = 0.5f, FaceDetectorModel model = FaceDetectorModel.Yolo)
+    public FaceDetector(float confidenceThreshold = 0.4f, float nmsThreshold = 0.5f, FaceDetectorModel model = FaceDetectorModel.Yolov5)
         : this(0.3f, confidenceThreshold, nmsThreshold, model)
     {
     }
@@ -52,7 +57,7 @@ public class FaceDetector : IFaceDetector
     /// <param name="confidenceThreshold">Confidence threshold</param>
     /// <param name="nmsThreshold">NonMaxSuppression threshold</param>
     /// <param name="model">Model variant to use</param>
-    public FaceDetector(float detectionThreshold, float confidenceThreshold, float nmsThreshold, FaceDetectorModel model = FaceDetectorModel.Yolo)
+    public FaceDetector(float detectionThreshold, float confidenceThreshold, float nmsThreshold, FaceDetectorModel model = FaceDetectorModel.Yolov5)
     {
         _session = new InferenceSession(ResolveModelPath(GetModelFileName(model)));
         (_inputName, _inputWidth, _inputHeight) = ReadInputInfo(_session);
@@ -69,7 +74,7 @@ public class FaceDetector : IFaceDetector
     /// <param name="confidenceThreshold">Confidence threshold</param>
     /// <param name="nmsThreshold">NonMaxSuppression threshold</param>
     /// <param name="model">Model variant to use</param>
-    public FaceDetector(SessionOptions options, float confidenceThreshold = 0.4f, float nmsThreshold = 0.5f, FaceDetectorModel model = FaceDetectorModel.Yolo)
+    public FaceDetector(SessionOptions options, float confidenceThreshold = 0.4f, float nmsThreshold = 0.5f, FaceDetectorModel model = FaceDetectorModel.Yolov5)
         : this(options, 0.3f, confidenceThreshold, nmsThreshold, model)
     {
     }
@@ -82,7 +87,7 @@ public class FaceDetector : IFaceDetector
     /// <param name="confidenceThreshold">Confidence threshold</param>
     /// <param name="nmsThreshold">NonMaxSuppression threshold</param>
     /// <param name="model">Model variant to use</param>
-    public FaceDetector(SessionOptions options, float detectionThreshold, float confidenceThreshold, float nmsThreshold, FaceDetectorModel model = FaceDetectorModel.Yolo)
+    public FaceDetector(SessionOptions options, float detectionThreshold, float confidenceThreshold, float nmsThreshold, FaceDetectorModel model = FaceDetectorModel.Yolov5)
     {
         _session = new InferenceSession(ResolveModelPath(GetModelFileName(model)), options);
         (_inputName, _inputWidth, _inputHeight) = ReadInputInfo(_session);
@@ -275,10 +280,17 @@ public class FaceDetector : IFaceDetector
         var dimensions = output.Dimensions;
         var count = dimensions.Length >= 3 ? dimensions[^1] : (Labels.Length + 15);
         var length = dimensions.Length >= 3 ? dimensions[^2] : (vector.Length / count);
+        var transposed = false;
+        if (dimensions.Length >= 3 && count > 32 && length > 0 && length <= 32)
+        {
+            transposed = true;
+            (count, length) = (length, count);
+        }
+
         var classes = Labels.Length;
         var yoloSquare = count - classes;
 
-        if (yoloSquare < 15 || length <= 0)
+        if (length <= 0)
         {
             return [];
         }
@@ -290,8 +302,44 @@ public class FaceDetector : IFaceDetector
         var candidates = new List<FaceDetectionResult>(length);
         for (int i = 0; i < length; i++)
         {
-            var offset = i * count;
-            var objectness = vector[offset + 4];
+            float Read(int index)
+            {
+                return transposed
+                    ? vector[(index * length) + i]
+                    : vector[(i * count) + index];
+            }
+
+            if (count == 6)
+            {
+                var score = Read(4);
+                if (score <= DetectionThreshold)
+                {
+                    continue;
+                }
+
+                var yolo26Rect = new SKRectI(
+                    (int)((Read(0) - padX) / gain),
+                    (int)((Read(1) - padY) / gain),
+                    (int)((Read(2) - padX) / gain),
+                    (int)((Read(3) - padY) / gain)
+                );
+
+                candidates.Add(new FaceDetectionResult
+                {
+                    Rectangle = Clamp(yolo26Rect, sourceWidth, sourceHeight),
+                    Id = (int)MathF.Round(Read(5)),
+                    Score = score
+                });
+
+                continue;
+            }
+
+            if (yoloSquare < 15)
+            {
+                continue;
+            }
+
+            var objectness = Read(4);
             if (objectness <= DetectionThreshold)
             {
                 continue;
@@ -301,7 +349,7 @@ public class FaceDetector : IFaceDetector
             var bestScore = float.MinValue;
             for (int c = 0; c < classes; c++)
             {
-                var classScore = vector[offset + yoloSquare + c];
+                var classScore = Read(yoloSquare + c);
                 if (classScore > bestScore)
                 {
                     bestScore = classScore;
@@ -314,10 +362,10 @@ public class FaceDetector : IFaceDetector
                 continue;
             }
 
-            var cx = vector[offset + 0];
-            var cy = vector[offset + 1];
-            var w = vector[offset + 2];
-            var h = vector[offset + 3];
+            var cx = Read(0);
+            var cy = Read(1);
+            var w = Read(2);
+            var h = Read(3);
 
             var rect = new SKRectI(
                 (int)((cx - (w / 2.0f) - padX) / gain),
@@ -329,8 +377,8 @@ public class FaceDetector : IFaceDetector
             var landmarks = new SKPointI[5];
             for (int p = 0; p < 5; p++)
             {
-                var px = vector[offset + 5 + (2 * p)];
-                var py = vector[offset + 6 + (2 * p)];
+                var px = Read(5 + (2 * p));
+                var py = Read(6 + (2 * p));
                 landmarks[p] = new SKPointI(
                     (int)((px - padX) / gain),
                     (int)((py - padY) / gain)
@@ -391,14 +439,7 @@ public class FaceDetector : IFaceDetector
 
     private static bool IsYoloOutputModel(InferenceSession session)
     {
-        if (session.OutputMetadata.Count != 1)
-        {
-            return false;
-        }
-
-        var dimensions = session.OutputMetadata.First().Value.Dimensions;
-        var last = dimensions.Length > 0 ? dimensions[^1] : -1;
-        return last >= 16 || last <= 0;
+        return session.OutputMetadata.Count == 1;
     }
 
     private static string GetModelFileName(FaceDetectorModel model)
@@ -406,7 +447,8 @@ public class FaceDetector : IFaceDetector
         return model switch
         {
             FaceDetectorModel.FaceOnnx => "face_detector_640.onnx",
-            FaceDetectorModel.Yolo => "yolov5s-face.onnx",
+            FaceDetectorModel.Yolov5 => "yolov5s-face.onnx",
+            FaceDetectorModel.Yolo26 => "yolo26_face_fp16.onnx",
             _ => throw new ArgumentOutOfRangeException(nameof(model), model, "Unsupported face detector model.")
         };
     }

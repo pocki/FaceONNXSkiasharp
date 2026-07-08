@@ -14,7 +14,7 @@ internal static class Program
 
         Console.WriteLine("FaceONNX.Samples: Face detection");
 
-        using var faceDetector = new FaceDetector(0.4f, 0.5f);
+        using var faceDetector = new FaceDetector(0.4f, 0.5f, FaceDetectorModel.Yolo26);
 
         Directory.CreateDirectory("results");
 

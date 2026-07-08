@@ -1,125 +1,102 @@
-# Face Detection and Multiple Face Recognition with FaceOnnx 👤
+# FaceONNX 👤
 
-A lightweight .NET 10 face detection library built on ONNX Runtime + SkiaSharp.
+Lightweight .NET 10 face detection library based on ONNX Runtime and SkiaSharp.
 
-## Why this project? ✨
+## Projects 📦
 
-- ✅ Removed heavy imaging dependencies: `Emgu.CV`, `OpenCvSharp4`, `UMapx`, `System.Drawing`
-- ✅ Uses `SkiaSharp` for image processing and rendering
-- ✅ Targets `.NET 10`
+- `FaceONNX`: core library
+- `FaceONNX.Samples`: console sample app (`images/` -> `results/`)
 
-## Projects
-
-- `FaceONNX`: core library (face detection and processing)
-- `FaceONNX.Samples`: console sample app with `images/` and `results/`
-
-## Run the sample 🚀
+## Quick start 🚀
 
 ```bash
 cd FaceONNX.Samples
 dotnet run
-dotnet run -- --test
 ```
 
-## Library usage 🧩
-
-### 1) Basic detection from an image
+## Usage 🧩
 
 ```csharp
 using FaceONNX;
 using SkiaSharp;
 
-using var detector = new FaceDetector(model: FaceDetectorModel.Yolo);
+using var detector = new FaceDetector(model: FaceDetectorModel.Yolov5);
 using var bitmap = SKBitmap.Decode("images\\group.jpg");
 
 FaceDetectionResult[] detections = detector.ForwardDetection(bitmap);
-
-foreach (var d in detections)
-{
-    Console.WriteLine($"Score={d.Score:F3}, Box={d.Rectangle}");
-}
-```
-
-### 2) Get rectangles only
-
-```csharp
 SKRectI[] boxes = detector.Forward(bitmap);
-```
 
-### 3) Detect inside a ROI (region of interest)
-
-```csharp
 var roi = new SKRectI(100, 80, 500, 420);
 FaceDetectionResult[] roiDetections = detector.ForwardDetection(bitmap, roi, clamp: true);
 ```
 
 ## Model selection 🧠
 
-`FaceDetector` now supports explicit model selection via `FaceDetectorModel`:
-
 ```csharp
-// YOLO model (default)
-using var yoloDetector = new FaceDetector(model: FaceDetectorModel.Yolo);
+// Default
+using var yolov5Detector = new FaceDetector(model: FaceDetectorModel.Yolov5);
 
-// FaceONNX split-output model
+using var yolo26Detector = new FaceDetector(model: FaceDetectorModel.Yolo26);
 using var faceOnnxDetector = new FaceDetector(model: FaceDetectorModel.FaceOnnx);
 ```
 
-## Model outputs explained 📦
+| Model enum | ONNX file | Output | Landmarks |
+|---|---|---|---|
+| `FaceDetectorModel.Yolov5` | `yolov5s-face.onnx` | Single YOLOv5-style tensor | Yes (5-point) |
+| `FaceDetectorModel.Yolo26` | `yolo26_face_fp16.onnx` | Single YOLO tensor (`xyxy + confidence + class`) | No |
+| `FaceDetectorModel.FaceOnnx` | `face_detector_640.onnx` | Split outputs (`confidences + boxes`) | No |
 
-| Model | ONNX file | Output layout | Landmarks | Notes |
-|---|---|---|---|---|
-| 🤖 `FaceDetectorModel.Yolo` | `yolov5s-face.onnx` | Single YOLO-style tensor | ✅ 5-point landmarks | Good when you need face keypoints (eyes, nose, mouth corners) |
-| 🧾 `FaceDetectorModel.FaceOnnx` | `face_detector_640.onnx` | Split outputs (confidences + boxes) | ❌ No landmarks | Good when you only need fast face boxes |
+## API summary 🛠️
 
-### Practical difference
+- `Forward(...)` returns `SKRectI[]`
+- `ForwardDetection(...)` returns `FaceDetectionResult[]`
+- ROI overloads: `Forward(image, rectangle, clamp)` and `ForwardDetection(image, rectangle, clamp)`
+- Thresholds: `detectionThreshold`, `confidenceThreshold`, `nmsThreshold`
+- Default model: `FaceDetectorModel.Yolov5`
 
-- 🎯 **YOLO** returns `Rectangle` + `Score` + `Points` (landmarks)
-- 📌 **FaceOnnx** returns `Rectangle` + `Score` (no landmarks)
+## Attribution and licenses 🙏
 
-## API notes 🛠️
+### FaceONNX model (`face_detector_640.onnx`) 🧾
 
-- `Forward(...)` returns only `SKRectI[]` boxes
-- `ForwardDetection(...)` returns rich `FaceDetectionResult[]`
-- Thresholds are configurable via constructor (`detectionThreshold`, `confidenceThreshold`, `nmsThreshold`)
-- Default model is `FaceDetectorModel.Yolo`
+Source:
+- https://github.com/arieffauzi-st/FaceONNX
+- https://github.com/arieffauzi-st/FaceONNX/blob/main/FaceONNX/Models/face_detector_640.onnx
 
-## Extensions and helper methods 🔧
+Thanks to `arieffauzi-st` for maintaining and sharing this FaceONNX fork.
 
-The library includes convenient extension helpers for post-processing:
+License status in source repo:
+- no root `LICENSE` file
+- no model-specific license/notice file in `FaceONNX/Models`
 
-- 🖼️ `FaceProcessingExtensions.Align(...)`: rotate/align full image or face ROI (`SKBitmap` and RGB channel-array overloads)
-- 📐 `Rectangles.ToBox(...)`, `Rectangles.Scale(...)`: convert rectangles to square boxes and expand/shrink regions
-- 🎯 `Rectangles.IoU(...)`: compute overlap ratio (Intersection over Union)
-- 👀 `Face5Landmarks`: helpers like `LeftEye`, `RightEye`, `Nose`, `Mouth`, plus `RotationAngle` and `SymmetryCoefficient`
+Reference:
+- https://github.com/arieffauzi-st/FaceONNX/blob/main/README.md
 
-### Short sample
+### YOLOv5 model and related integration code 🤖
 
-```csharp
-using FaceONNX;
-using SkiaSharp;
+Source:
+- https://github.com/FaceONNX/FaceONNX
+- https://github.com/FaceONNX/FaceONNX.Models
 
-using var detector = new FaceDetector(model: FaceDetectorModel.Yolo);
-using var bitmap = SKBitmap.Decode("images\\group.jpg");
+Thanks to the FaceONNX maintainers and contributors for publishing the models and implementation details used by this project.
 
-var detections = detector.ForwardDetection(bitmap);
-if (detections.Length == 0)
-{
-    return;
-}
+License:
+- MIT
+- Copyright (c) 2020-2025 Valery Asiryan
+- base models: Ultralytics YOLOv5 (AGPL-3.0, or Ultralytics Enterprise License)
 
-var face = detections[0];
+Reference:
+- https://github.com/FaceONNX/FaceONNX/blob/main/LICENSE
+- https://github.com/FaceONNX/FaceONNX.Models/blob/main/LICENSE
 
-// Expand to a square crop around the first face.
-SKRectI square = face.Rectangle.ToBox(0.25f);
+### YOLO26 model (`yolo26_face_fp16.onnx`) 🆕
 
-// If landmarks are present (YOLO model), align by estimated face roll.
-if (face.Points is not null)
-{
-    using var aligned = bitmap.Align(square, face.Points.RotationAngle, clamp: true);
-    Console.WriteLine($"Roll angle = {face.Points.RotationAngle:F2}°");
-}
+Source:
+- https://github.com/marceloeatworld/yolo26-training
 
-Console.WriteLine($"IoU(original, square) = {face.Rectangle.IoU(square):F3}");
-```
+License details from source repo:
+- training code: MIT
+- base models: Ultralytics YOLO26 (AGPL-3.0, or Ultralytics Enterprise License)
+- dataset terms: WiderFace terms
 
+Reference:
+- https://github.com/marceloeatworld/yolo26-training/blob/main/README.md
