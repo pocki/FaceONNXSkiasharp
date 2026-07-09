@@ -15,10 +15,7 @@ public sealed class Face5Landmarks
     /// <param name="points">Five landmark points</param>
     public Face5Landmarks(SKPointI[] points)
     {
-        if (points is null)
-        {
-            throw new ArgumentNullException(nameof(points));
-        }
+        ArgumentNullException.ThrowIfNull(points);
 
         if (points.Length != 5)
         {

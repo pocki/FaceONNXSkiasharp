@@ -1,32 +1,54 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <CopyrightYear>$([System.DateTime]::UtcNow.ToString('yyyy'))</CopyrightYear>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <RollForward>Major</RollForward>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>FaceONNX</PackageId>
-    <Authors>pocki</Authors>
-    <Description>Face detection library using ONNX Runtime and SkiaSharp.</Description>
-    <PackageTags>face-detection;onnx;skia</PackageTags>
-    <RepositoryUrl>https://github.com/pocki/FaceONNXSkiasharp</RepositoryUrl>
+    <NugetAuditMode>all</NugetAuditMode>
+    <NugetAuditLevel>low</NugetAuditLevel>
+
+    <Authors>pock-programming</Authors>
+    <Copyright>© $(CopyrightYear) pock-programming</Copyright>
+    <Company>pock-programming</Company>
+    <PackageVersion>0.1.0</PackageVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageId>pock-programming.FaceONNXSkiasharp</PackageId>
+    <Description>Face detection library using ONNX Runtime and SkiaSharp.</Description>
+    <PackageTags>face-detection;onnx;skia;skiasharp</PackageTags>
+    <RepositoryUrl>https://github.com/pocki/FaceONNXSkiasharp</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.27.0" />
-    <PackageReference Include="SkiaSharp" Version="4.148.0" />
+    <PackageReference Include="SkiaSharp" Version="4.150.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
-    <None Update="Models\**\*.onnx"
-          CopyToOutputDirectory="PreserveNewest"
-          Pack="true"
-          PackagePath="contentFiles\any\any\"
-          PackageCopyToOutput="true" />
+    <None Update="Models\**\*.onnx" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="contentFiles\any\any\" PackageCopyToOutput="true" />
   </ItemGroup>
 
 </Project>

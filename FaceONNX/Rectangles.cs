@@ -3,7 +3,7 @@
 namespace FaceONNX;
 
 /// <summary>
-/// Using for face boxes operations.
+/// Extension methods for face-box rectangle operations.
 /// </summary>
 public static class Rectangles
 {
@@ -84,10 +84,10 @@ public static class Rectangles
     }
 
     /// <summary>
-    /// Returns rectangle from four points.
+    /// Returns a rectangle from four corner points.
     /// </summary>
-    /// <param name="points"></param>
-    /// <returns></returns>
+    /// <param name="points">Array of exactly four corner points (top-left, top-right, bottom-right, bottom-left).</param>
+    /// <returns>Rectangle</returns>
     public static SKRectI FromPoints(this SKPointI[] points)
     {
         if (points.Length != 4)
@@ -286,12 +286,12 @@ public static class Rectangles
     }
 
     /// <summary>
-    /// Implements scale operator.
+    /// Returns rectangle scaled by relative factors along each axis.
     /// </summary>
     /// <param name="rectangle">Rectangle</param>
     /// <param name="kx">Factor for x axis</param>
     /// <param name="ky">Factor for y axis</param>
-    /// <returns></returns>
+    /// <returns>Scaled rectangle</returns>
     public static SKRectI Scale(this SKRectI rectangle, float kx = 0.0f, float ky = 0.0f)
     {
         var x = rectangle.Left < 0 ? 0 : rectangle.Left;

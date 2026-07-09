@@ -2,6 +2,13 @@
   <Folder Name="/Solution Items/">
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Solution Items/.github/">
+    <File Path=".github/copilot-instructions.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
   <Project Path="FaceONNX.Samples/FaceONNX.Samples.csproj" />
   <Project Path="FaceONNX/FaceONNX.csproj" />
 </Solution>

@@ -3,7 +3,7 @@ using SkiaSharp;
 namespace FaceONNX;
 
 /// <summary>
-/// Using for face processing.
+/// Extension methods for face image alignment and cropping operations.
 /// </summary>
 public static class FaceProcessingExtensions
 {
@@ -15,10 +15,7 @@ public static class FaceProcessingExtensions
     /// <returns>Bitmap</returns>
     public static SKBitmap Align(this SKBitmap image, float angle)
     {
-        if (image is null)
-        {
-            throw new ArgumentNullException(nameof(image));
-        }
+        ArgumentNullException.ThrowIfNull(image);
 
         var output = new SKBitmap(image.Width, image.Height, image.ColorType, image.AlphaType);
         using var canvas = new SKCanvas(output);
@@ -40,10 +37,7 @@ public static class FaceProcessingExtensions
     /// <returns>Bitmap</returns>
     public static SKBitmap Align(this SKBitmap image, SKRectI rectangle, float angle, bool clamp = true)
     {
-        if (image is null)
-        {
-            throw new ArgumentNullException(nameof(image));
-        }
+        ArgumentNullException.ThrowIfNull(image);
 
         var scaledRectangle = rectangle.Scale();
         using var cropped = Crop(image, scaledRectangle, clamp);

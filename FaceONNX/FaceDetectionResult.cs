@@ -33,9 +33,9 @@ public sealed class FaceDetectionResult
     public Face5Landmarks? Points { get; set; }
 
     /// <summary>
-    /// Empty detection.
+    /// Empty detection sentinel. Do not mutate this instance.
     /// </summary>
-    public static FaceDetectionResult Empty => new()
+    public static readonly FaceDetectionResult Empty = new()
     {
         Rectangle = SKRectI.Empty,
         Score = 0,

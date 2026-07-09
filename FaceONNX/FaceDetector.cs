@@ -26,7 +26,7 @@ public enum FaceDetectorModel
 }
 
 /// <summary>
-/// Defines face detector.
+/// ONNX-backed face detector supporting multiple model variants.
 /// </summary>
 public class FaceDetector : IFaceDetector
 {
@@ -111,16 +111,17 @@ public class FaceDetector : IFaceDetector
     /// </summary>
     public static readonly string[] Labels = ["Face"];
 
-
     /// <inheritdoc/>
     public SKRectI[] Forward(SKBitmap image)
     {
+        ArgumentNullException.ThrowIfNull(image);
         return ToBoxes(ForwardDetection(image));
     }
 
     /// <inheritdoc/>
     public FaceDetectionResult[] ForwardDetection(SKBitmap image)
     {
+        ArgumentNullException.ThrowIfNull(image);
         var rgb = BitmapToRgbFloat(image);
         return ForwardDetection(rgb);
     }
@@ -134,10 +135,7 @@ public class FaceDetector : IFaceDetector
     /// <inheritdoc/>
     public FaceDetectionResult[] ForwardDetection(SKBitmap image, SKRectI rectangle, bool clamp = true)
     {
-        if (image is null)
-        {
-            throw new ArgumentNullException(nameof(image));
-        }
+        ArgumentNullException.ThrowIfNull(image);
 
         var roi = rectangle;
         if (clamp)
