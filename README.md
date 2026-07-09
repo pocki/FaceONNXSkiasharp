@@ -21,7 +21,7 @@ using FaceONNX;
 using SkiaSharp;
 
 using var detector = new FaceDetector(model: FaceDetectorModel.Yolov5);
-using var bitmap = SKBitmap.Decode("images\\group.jpg");
+using var bitmap = SKBitmap.Decode("images/group.jpg");
 
 FaceDetectionResult[] detections = detector.ForwardDetection(bitmap);
 SKRectI[] boxes = detector.Forward(bitmap);

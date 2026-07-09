@@ -139,13 +139,13 @@ public static class FaceProcessingExtensions
             throw new ArgumentOutOfRangeException(nameof(rectangle), "Rectangle is outside image bounds.");
         }
 
-        var output = new SKBitmap();
-        if (!image.ExtractSubset(output, roi))
+        using var subset = new SKBitmap();
+        if (!image.ExtractSubset(subset, roi))
         {
             throw new InvalidOperationException("Failed to crop bitmap.");
         }
 
-        return output;
+        return subset.Copy() ?? throw new InvalidOperationException("Failed to copy cropped bitmap.");
     }
 
     private static float[,] RotateChannel(float[,] src, float angleDegrees)

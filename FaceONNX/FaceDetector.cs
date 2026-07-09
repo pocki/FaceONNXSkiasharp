@@ -428,7 +428,7 @@ public class FaceDetector : IFaceDetector
         var kv = session.InputMetadata.First();
         var dims = kv.Value.Dimensions;
 
-        // ponytail: face detector expects NCHW. Fallback keeps current behavior if metadata is missing.
+        // Face detector expects NCHW. Fallback keeps current behavior if metadata is missing.
         var h = dims.Length > 2 && dims[2] > 0 ? dims[2] : 480;
         var w = dims.Length > 3 && dims[3] > 0 ? dims[3] : 640;
 

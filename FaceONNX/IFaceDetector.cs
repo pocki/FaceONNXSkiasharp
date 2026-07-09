@@ -10,7 +10,7 @@ public interface IFaceDetector : IDisposable
     #region Interface
 
     /// <summary>
-    /// Gets or sets detection threshold.
+    /// The minimum confidence score required to consider a detected region as a face.
     /// </summary>
     float DetectionThreshold { get; set; }
 

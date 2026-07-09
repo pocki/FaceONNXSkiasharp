@@ -42,7 +42,7 @@ internal static class FaceDetectorRegressionTests
             using var actual = RenderDetections(source, faces);
             var (meanAbsDiff, maxAbsDiff) = ComputeRgbDiff(actual, expected);
 
-            // ponytail: JPEG baselines can vary slightly by platform build, keep a tiny tolerance.
+            // JPEG baselines can vary slightly by platform build, keep a tiny tolerance.
             var pass = meanAbsDiff <= 2.0f;
             Console.WriteLine(
                 $"{(pass ? "PASS" : "FAIL")}: {fileName} faces={faces.Length} meanDiff={meanAbsDiff:F3} maxDiff={maxAbsDiff}");
