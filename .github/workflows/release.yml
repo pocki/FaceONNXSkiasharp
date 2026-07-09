@@ -1,0 +1,61 @@
+﻿name: Release and Push to NuGet
+
+permissions:
+  id-token: write   # required for GitHub OIDC
+  packages: write # for pushing GitHub Nuget packages
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
+      packages: write # for pushing GitHub Nuget packages
+      contents: read
+      #contents: write # to be able to publish a GitHub release
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - uses: NuGet/setup-nuget@v2.0.0
+      with:
+        nuget-version: latest
+
+    - name: Verify commit exists in origin/main
+      run: git branch --remote --contains | grep origin/main
+
+    - name: Set VERSION variable from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+
+    - name: Build
+      run: dotnet build --configuration Release /p:Version=${VERSION}
+
+    - name: Pack
+      run: dotnet pack --configuration Release /p:Version=${VERSION} /p:ContinuousIntegrationBuild=true /p:PackageVersion=${VERSION} --no-build --output .
+
+    # Get a short-lived NuGet API key
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
+    - name: Push NuGet package NuGet.org
+      run: dotnet nuget push "*.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+
+    - name: Push NuGet package Github
+      run: dotnet nuget push "*.nupkg" --source https://nuget.pkg.github.com/pocki/index.json --api-key ${GITHUB_TOKEN}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

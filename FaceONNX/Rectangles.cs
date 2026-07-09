@@ -3,7 +3,7 @@
 namespace FaceONNX;
 
 /// <summary>
-/// Using for face boxes operations.
+/// Extension methods for face-box rectangle operations.
 /// </summary>
 public static class Rectangles
 {
@@ -84,10 +84,10 @@ public static class Rectangles
     }
 
     /// <summary>
-    /// Returns rectangle from four points.
+    /// Returns a rectangle from four corner points.
     /// </summary>
-    /// <param name="points"></param>
-    /// <returns></returns>
+    /// <param name="points">Array of exactly four corner points (top-left, top-right, bottom-right, bottom-left).</param>
+    /// <returns>Rectangle</returns>
     public static SKRectI FromPoints(this SKPointI[] points)
     {
         if (points.Length != 4)
@@ -135,30 +135,26 @@ public static class Rectangles
     /// <returns>Rectangle</returns>
     public static SKRectI Max(params SKRectI[] rectangles)
     {
-        // params
-        var length = rectangles.Length;
-        var rectangle = SKRectI.Empty;
-        var area = 0;
-        var max = 0;
+        var maxIndex = -1;
+        var maxArea = int.MinValue;
 
-        // do job
-        for (int i = 0; i < length; i++)
+        for (int i = 0; i < rectangles.Length; i++)
         {
-            rectangle = rectangles[i];
-
+            var rectangle = rectangles[i];
             if (rectangle.IsEmpty)
             {
                 continue;
             }
 
-            if (rectangle.Area() > area)
+            var area = rectangle.Area();
+            if (area > maxArea)
             {
-                max = i;
+                maxArea = area;
+                maxIndex = i;
             }
         }
 
-        // output
-        return length > 0 ? rectangles[max] : rectangle;
+        return maxIndex >= 0 ? rectangles[maxIndex] : SKRectI.Empty;
     }
 
     /// <summary>
@@ -168,30 +164,26 @@ public static class Rectangles
     /// <returns>Rectangle</returns>
     public static SKRectI Min(params SKRectI[] rectangles)
     {
-        // params
-        var length = rectangles.Length;
-        var rectangle = SKRectI.Empty;
-        var area = int.MaxValue;
-        var min = int.MaxValue;
+        var minIndex = -1;
+        var minArea = int.MaxValue;
 
-        // do job
-        for (int i = 0; i < length; i++)
+        for (int i = 0; i < rectangles.Length; i++)
         {
-            rectangle = rectangles[i];
-
+            var rectangle = rectangles[i];
             if (rectangle.IsEmpty)
             {
                 continue;
             }
 
-            if (rectangle.Area() < area)
+            var area = rectangle.Area();
+            if (area < minArea)
             {
-                min = i;
+                minArea = area;
+                minIndex = i;
             }
         }
 
-        // output
-        return length > 0 ? rectangles[min] : rectangle;
+        return minIndex >= 0 ? rectangles[minIndex] : SKRectI.Empty;
     }
 
     /// <summary>
@@ -294,12 +286,12 @@ public static class Rectangles
     }
 
     /// <summary>
-    /// Implements scale operator.
+    /// Returns rectangle scaled by relative factors along each axis.
     /// </summary>
     /// <param name="rectangle">Rectangle</param>
     /// <param name="kx">Factor for x axis</param>
     /// <param name="ky">Factor for y axis</param>
-    /// <returns></returns>
+    /// <returns>Scaled rectangle</returns>
     public static SKRectI Scale(this SKRectI rectangle, float kx = 0.0f, float ky = 0.0f)
     {
         var x = rectangle.Left < 0 ? 0 : rectangle.Left;
