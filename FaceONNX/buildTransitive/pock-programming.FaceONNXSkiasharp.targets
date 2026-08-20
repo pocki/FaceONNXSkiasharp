@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <_FaceOnnxModelsPattern>$(MSBuildThisFileDirectory)..\contentFiles\any\any\Models\*.onnx</_FaceOnnxModelsPattern>
+  </PropertyGroup>
+
+  <!-- Ensure ONNX files are never treated as C# source files -->
+  <Target Name="FaceOnnxRemoveOnnxFromCompile" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Compile Remove="**\*.onnx" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Copy models for normal build output (bin\...\Models\) -->
+  <Target Name="FaceOnnxCopyModelsToOutput" AfterTargets="Build">
+    <ItemGroup>
+      <_FaceOnnxModelFiles Include="$(_FaceOnnxModelsPattern)" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(OutDir)Models" Condition="!Exists('$(OutDir)Models')" />
+
+    <Copy SourceFiles="@(_FaceOnnxModelFiles)"
+          DestinationFiles="@(_FaceOnnxModelFiles->'$(OutDir)Models\%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_FaceOnnxModelFiles)' != ''" />
+  </Target>
+
+  <!-- Copy models for publish output as well -->
+  <Target Name="FaceOnnxCopyModelsToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_FaceOnnxModelFilesForPublish Include="$(_FaceOnnxModelsPattern)" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(PublishDir)Models" Condition="!Exists('$(PublishDir)Models')" />
+
+    <Copy SourceFiles="@(_FaceOnnxModelFilesForPublish)"
+          DestinationFiles="@(_FaceOnnxModelFilesForPublish->'$(PublishDir)Models\%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_FaceOnnxModelFilesForPublish)' != ''" />
+  </Target>
+
+</Project>
