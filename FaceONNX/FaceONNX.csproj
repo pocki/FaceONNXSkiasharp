@@ -16,7 +16,7 @@
     <Authors>pock-programming</Authors>
     <Copyright>© $(CopyrightYear) pock-programming</Copyright>
     <Company>pock-programming</Company>
-    <PackageVersion>0.1.0</PackageVersion>
+    <PackageVersion>0.1.1</PackageVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>pock-programming.FaceONNXSkiasharp</PackageId>
     <Description>Face detection library using ONNX Runtime and SkiaSharp.</Description>
@@ -38,9 +38,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.27.0" />
-    <PackageReference Include="SkiaSharp" Version="4.150.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300">
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.29.0" />
+    <PackageReference Include="SkiaSharp" Version="4.151.1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.400">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -49,6 +49,8 @@
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
     <None Update="Models\**\*.onnx" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="contentFiles\any\any\" PackageCopyToOutput="true" />
+    <None Include="build\pock-programming.FaceONNXSkiasharp.props" Pack="true" PackagePath="build\" />
+    <None Include="build\pock-programming.FaceONNXSkiasharp.targets" Pack="true" PackagePath="build\" />
   </ItemGroup>
 
 </Project>

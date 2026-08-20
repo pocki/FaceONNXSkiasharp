@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!-- Prevent ONNX binary files from being passed to the C# compiler as source. -->
+  <!-- NuGet contentFiles infrastructure can inject them into the Compile item    -->
+  <!-- group when no explicit buildAction is set; this target removes them.       -->
+  <Target Name="FaceONNXRemoveOnnxFromCompile" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Compile Remove="@(Compile)" Condition="'%(Extension)' == '.onnx'" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Ensure the ONNX models copied into the project are treated as None items   -->
+  <!-- with CopyToOutputDirectory so they end up in bin\...\Models\ at runtime.  -->
+  <ItemGroup>
+    <Compile Remove="**\*.onnx" />
+    <None Include="$(MSBuildProjectDirectory)\Models\**\*.onnx"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+
+</Project>

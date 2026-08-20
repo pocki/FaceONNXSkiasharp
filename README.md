@@ -14,6 +14,30 @@ cd FaceONNX.Samples
 dotnet run
 ```
 
+## Installation 📥
+
+### From NuGet Package
+
+```bash
+dotnet add package pock-programming.FaceONNXSkiasharp
+```
+
+Or via Package Manager:
+
+```powershell
+Install-Package pock-programming.FaceONNXSkiasharp
+```
+
+### Model Deployment
+
+When you install this package via NuGet:
+
+1. **ONNX models** are automatically included in the package as content files
+2. **Models are automatically copied** to your project's output directory (`bin\Debug\net10.0\Models\` or equivalent)
+3. **Model resolution** is handled automatically by the `FaceDetector` class
+
+**Supported frameworks:** .NET 10+
+
 ## Usage 🧩
 
 ```csharp
